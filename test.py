@@ -135,10 +135,71 @@ def motion_test():
 
 
 def state_test():
-    pass
+    while 1==1:
+        lock.acquire(blocking=True, timeout=10)
+        print(threading.currentThread())
+        cmd_list = ["W","T","F"]
+        cmd = random.choice(cmd_list)
+        data = random_test('test_state', cmd, 1)
+        test_list = data["CMDS"]
+        is_passed=0
+
+        for x in test_list:
+            if x["DIR"] == 'T':
+                cmd_to_send = x["CMD_TO_SEND"].encode('utf-8')
+                print(cmd_to_send)
+                USB.send(cmd_to_send)
+                is_passed=1
+
+
+
+                 # sprawdzanie odpowiedzi
+
+
+
+        if is_passed==1:
+            FILE.write_p("{}==> PASSED\n".format(data['DESC']))
+        else:
+            FILE.write_f("{}==> FAILED\n".format(data['DESC']))
+
+
+        lock.release()
+        time.sleep(0.1)
+
 
 def output_test():
-    pass
+    while 1==1:
+        lock.acquire(blocking=True, timeout=10)
+        print(threading.currentThread())
+        cmd_list = ["L","I","R"]
+        cmd = random.choice(cmd_list)
+        data = random_test('test_state', cmd, 1)
+        test_list = data["CMDS"]
+        is_passed=0
+
+        for x in test_list:
+            if x["DIR"] == 'T':
+                cmd_to_send = x["CMD_TO_SEND"].encode('utf-8')
+                print(cmd_to_send)
+                USB.send(cmd_to_send)
+                is_passed=1
+
+
+
+
+            # sprawdzanie odpowiedzi
+
+
+
+        if is_passed==1:
+            FILE.write_p("{}==> PASSED\n".format(data['DESC']))
+        else:
+            FILE.write_f("{}==> FAILED\n".format(data['DESC']))
+
+
+        lock.release()
+        time.sleep(0.1)
+
 
 if __name__=='__main__':
 

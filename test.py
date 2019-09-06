@@ -16,6 +16,7 @@ class USB_serial(serial.Serial):
     buf_s = []
     buf_o = []
 
+
     def __init__(self):
         sys.stdout.write("Test\n")
         self.usb = serial.Serial('/dev/ttyUSB0', 38400, timeout=1)
@@ -28,6 +29,7 @@ class USB_serial(serial.Serial):
       
     def send(self, data):
         self.usb.write(data) #to musi byc stringS
+
 
     def loopRecive(self):
         while 1==1:
@@ -43,8 +45,11 @@ class USB_serial(serial.Serial):
                     self.buf_s.append(data)
                 elif first_char=='L' or first_char=='I' or first_char=='D':
                     self.buf_o.append(data)
-                elif first_char=='H' or first_char=='A' or first_char=='J' or first_char=='S' or first_char=='Y':
+                elif first_char=='H' or first_char=='A' or first_char=='J' or first_char=='S':
                     self.buf_m.append(data)
+                elif first_char=='E':
+                    self.buf_m.append(data)
+                    print(data)
                 else: 
                     print('Incorrect comand: ')
                     print(data.decode('utf-8'))
@@ -85,7 +90,7 @@ def random_test(group, cmd, y):
 
 def motion_test():
     while 1==1:
-        lock.acquire(blocking=True, timeout=10)
+        # lock.acquire(blocking=True, timeout=10)
         print(threading.currentThread())
         cmd_list = ["H","A","J","S","Y"]
         cmd = random.choice(cmd_list)
@@ -95,48 +100,49 @@ def motion_test():
 
 
         for x in test_list:
-            print("Kkkkkk")
             if x["DIR"] == 'T':
                 cmd_to_send = x["CMD_TO_SEND"].encode('utf-8')
-                print(cmd_to_send)
                 USB.send(cmd_to_send)
                 is_passed=1
             elif x["DIR"] == 'R':
                 t = time.time()
-                while 1==1:
-
-                    if time.time() < t+(x["TIMEOUT"]/1000): 
+               
+                while 1==1:  
+                    time.sleep(1)
+                    print(t)
+                    print(time.time())
+                    if time.time() > t+(x["TIMEOUT"]/1000): 
                         is_passed=0
                         break
-
-                    time.sleep(0.1)
-
+                        
                     if len(USB.buf_m) != 0:
                         answ = USB.buf_m.pop()
-                        if answ[1:] ==  x["CMD"] and answ[:2] == x["VAL"]:
+                        answ = answ.decode('utf-8')
+                        if answ[1:] == x["CMD"] and answ[:2] == x["VAL"]: 
                             is_passed = 1
                             print("OKEY")
                             break
                         else: 
                             is_passed=0
+                            print("NIEOKEY")
                             break
 
             if is_passed==0: break
 
-
+        USB.buf_m.clear()
         if is_passed==1:
             FILE.write_p("{}==> PASSED\n".format(data['DESC']))
         else:
             FILE.write_f("{}==> FAILED\n".format(data['DESC']))
 
 
-        lock.release()
+        # lock.release()
         time.sleep(0.1)
 
 
 def state_test():
     while 1==1:
-        lock.acquire(blocking=True, timeout=10)
+        # lock.acquire(blocking=True, timeout=10)
         print(threading.currentThread())
         cmd_list = ["W","T","F"]
         cmd = random.choice(cmd_list)
@@ -150,30 +156,49 @@ def state_test():
                 print(cmd_to_send)
                 USB.send(cmd_to_send)
                 is_passed=1
+            elif x["DIR"] == 'R':
+                t = time.time()
+               
+                while 1==1:  
+                    time.sleep(1)
+                    print(t)
+                    print(time.time())
+                    if time.time() > t+(x["TIMEOUT"]/1000): 
+                        is_passed=0
+                        break
+                        
+                    if len(USB.buf_s) != 0:
+                        answ = USB.buf_s.pop()
+                        answ = answ.decode('utf-8')
+                        if answ[1:] == x["CMD"]:
+                            is_passed = 1
+                            print("OKEY")
+                            break
+                        else: 
+                            is_passed=0
+                            print("NIEOKEY")
+                            break
 
+            if is_passed==0: break
 
-
-                 # sprawdzanie odpowiedzi
-
-
-
+        USB.buf_s.clear()
         if is_passed==1:
             FILE.write_p("{}==> PASSED\n".format(data['DESC']))
         else:
             FILE.write_f("{}==> FAILED\n".format(data['DESC']))
 
 
-        lock.release()
+        #lock.release()
         time.sleep(0.1)
 
 
 def output_test():
     while 1==1:
-        lock.acquire(blocking=True, timeout=10)
+        # lock.acquire(blocking=True, timeout=10)
         print(threading.currentThread())
         cmd_list = ["L","I","R"]
         cmd = random.choice(cmd_list)
-        data = random_test('test_state', cmd, 1)
+        data = random_test('test_out', cmd, 1)
         test_list = data["CMDS"]
         is_passed=0
 
@@ -183,13 +208,32 @@ def output_test():
                 print(cmd_to_send)
                 USB.send(cmd_to_send)
                 is_passed=1
+            elif x["DIR"] == 'R':
+                t = time.time()
+               
+                while 1==1:  
+                    time.sleep(1)
+                    print(t)
+                    print(time.time())
+                    if time.time() > t+(x["TIMEOUT"]/1000): 
+                        is_passed=0
+                        break
+                        
+                    if len(USB.buf_o) != 0:
+                        answ = USB.buf_o.pop()
+                        answ = answ.decode('utf-8')
+                        if answ[1:] == x["CMD"]:
+                            is_passed = 1
+                            print("OKEY")
+                            break
+                        else: 
+                            is_passed=0
+                            print("NIEOKEY")
+                            break
 
+            if is_passed==0: break
 
-
-
-            # sprawdzanie odpowiedzi
-
-
+        USB.buf_o.clear()
 
         if is_passed==1:
             FILE.write_p("{}==> PASSED\n".format(data['DESC']))
@@ -197,7 +241,7 @@ def output_test():
             FILE.write_f("{}==> FAILED\n".format(data['DESC']))
 
 
-        lock.release()
+        # lock.release()
         time.sleep(0.1)
 
 
@@ -211,12 +255,15 @@ if __name__=='__main__':
     # th1.daemon = True
     th2 = threading.Thread(target = motion_test) 
     # th2.daemon = True
+    th3 = threading.Thread(target = state_test) 
+    # th3.daemon = True
 
     th1.start()
     th2.start()
+    th3.start()
 
-    th1.join()
-    th2.join()
+    # th1.join()
+    # th2.join()
     
     
     

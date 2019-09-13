@@ -42,26 +42,36 @@ class STATE_test():
     def start(self):
         while 1==1:
             # print(threading.currentThread())
+            is_passed = 1
             self.load_test()
             for self.test in self.tests_list:
                 if self.test["DIR"]=='R':
                     if self.recive()==0:
-                        self.failed()
+                        is_passed = 0
                         break
                 elif self.test["DIR"]=='T':
                     if self.transmite()==0:
-                        self.failed()
+                        is_passed = 0
                         break
                 else: 
                     FILE.write_f("Bledna komenda okreslajaca kierunek transferu danych")
-                    self.failed()
+                    is_passed = 0
                     break
+
+            if is_passed==0:
+                self.failed()
+            else:
+                self.passed()
+
             time.sleep(0.05)
             self.USB.buf_o.clear()
 
 
     def failed(self):
         self.FILE.write_f("{}==> FAILED\n".format(self.data['DESC']))
+
+    def passed(self):
+        self.FILE.write_p("{}==> PASSED\n".format(self.data['DESC']))
 
 
     def recive(self):

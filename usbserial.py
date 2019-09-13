@@ -33,6 +33,7 @@ class USB_serial(serial.Serial):
                 self.lock.acquire()
                 data = self.usb.readline()
                 self.lock.release()
+                print(data)
                 first_char =  data[:1].decode('utf-8')
                 print("check")
                 if first_char=='W' or first_char=='T' or first_char=='F':

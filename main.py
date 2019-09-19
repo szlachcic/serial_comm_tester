@@ -34,7 +34,6 @@ if __name__=='__main__':
     OUTPUT = output.OUTPUT_test(USB, FILE)
     STATE = state.STATE_test(USB, FILE) 
 
-
     th1 = threading.Thread(target = USB.loopRecive)
     th2 = threading.Thread(target = DRIVE.start)
     th3 = threading.Thread(target = OUTPUT.start)
@@ -43,7 +42,7 @@ if __name__=='__main__':
     th1.start()
     th2.start()
     th3.start()
-    th4.start()
+    #th4.start()
 
     # th1.daemon = True
     # th2 = threading.Thread(target =) 

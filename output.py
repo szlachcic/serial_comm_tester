@@ -37,19 +37,27 @@ class OUTPUT_test():
 
         with open(name) as json_file:
             self.data = json.load(json_file)
-
+            # print(name)
 
     def start(self):
         while 1==1:
             # print(threading.currentThread())
+
+            time.sleep(1)
+            self.USB.buf_o.clear()
             is_passed = 1
+            
             self.load_test()
             for self.test in self.tests_list:
                 if self.test["DIR"]=='R':
+                    # print("odbieram")
                     if self.recive()==0:
                         is_passed = 0
+                        # print("niezdany")
                         break
+                    # print("zdany")
                 elif self.test["DIR"]=='T':
+                    # print("wysylam")
                     if self.transmite()==0:
                         is_passed = 0
                         break
@@ -57,14 +65,15 @@ class OUTPUT_test():
                     FILE.write_f("Bledna komenda okreslajaca kierunek transferu danych")
                     is_passed = 0
                     break
+                time.sleep(3)
             
             if is_passed==0:
                 self.failed()
             else:
                 self.passed()
 
-            time.sleep(0.05)
-            self.USB.buf_o.clear()
+            
+            # self.USB.buf_o.clear()
 
 
     def failed(self):
@@ -76,25 +85,35 @@ class OUTPUT_test():
 
     def recive(self):
         t = time.time()     
-        while time.time() < t+(self.test["TIMEOUT"]/1000):  
+        while time.time() < t+(self.test["TIMEOUT"]/100):  
             time.sleep(0.05)
             if len(self.USB.buf_o) != 0:
-                self.answ = self.USB.buf_o.pop().decode('utf-8')
+                self.answ = self.USB.buf_o.pop(0).decode('utf-8')
                 if self.is_correct_answ()==1:
                     return 1
                 else: 
                     return 0
+        # print("timeout")           
         return 0
 
     def is_correct_answ(self):
-        regex = "^{}\s{}$/".format(self.test["CMD"], self.test["VAL"])
+
+        print(self.test["CMD"])
+        print(self.test["VAL"])
+        print(self.answ)
+
+        regex = r"^\b{}\b\s\b{}\b".format(self.test["CMD"], self.test["VAL"])
+        
         if re.search(regex ,self.answ):
             return 1
         else: 
             return 0
 
     def transmite(self):
-        cmd_to_send = self.test["CMD_TO_SEND"].encode('utf-8')
+        cmd_to_send = self.test["CMD_TO_SEND"]
+        cmd_to_send += "\r"
+        cmd_to_send = cmd_to_send.encode('utf-8')
+
         self.USB.send(cmd_to_send)
         return 1
 
